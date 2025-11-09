@@ -17,8 +17,8 @@ custom:
       scripts:
         # Need to reinstall sharp due to different host architecture
         - npm r sharp
-        - npm i sharp
-        - npm i --cpu=arm64 --os=linux --include=optional sharp
+        - npm i --include=optional sharp
+        - npm i --cpu=arm64 --os=linux sharp
 
 provider:
   name: aws
