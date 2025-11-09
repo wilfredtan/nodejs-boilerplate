@@ -1,6 +1,16 @@
 service: panorama-image-manager
 
 useDotenv: true
+plugins:
+  - serverless-esbuild
+custom:
+  esbuild:
+    packager: "npm"
+    bundle: true
+    minify: false
+    exclude: ["@aws-sdk/*"]
+    target: "node20"
+    format: "cjs"
 
 provider:
   name: aws
@@ -31,19 +41,6 @@ provider:
           Action:
             - ssm:GetParameter
           Resource: "*"
-
-plugins:
-  - serverless-esbuild
-
-custom:
-  esbuild:
-    packager: "npm"
-    bundle: true
-    minify: false
-    external:
-      - "@aws-sdk/*"
-    target: "node20"
-    format: "cjs"
 
 functions:
   api:

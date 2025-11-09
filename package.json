@@ -8,6 +8,7 @@
     "lint": "eslint ./src/**/*.ts",
     "test": "jest",
     "deploy": "osls deploy -s dev -r ap-southeast-1 --verbose",
+    "package": "osls package -s dev -r ap-southeast-1 --verbose",
     "remove": "osls remove"
   },
   "dependencies": {
