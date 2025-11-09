@@ -43,5 +43,8 @@
     "globals": "^16.5.0",
     "osls": "^3.58.1",
     "serverless-esbuild": "^1.55.1"
+  },
+  "overrides": {
+    "serverless": "npm:osls"
   }
 }
