@@ -1,9 +1,5 @@
-import * as awsServerlessExpress from 'aws-serverless-express';
-import { APIGatewayProxyEvent, Context } from 'aws-lambda';
-import { app, startApolloServer } from './app';
+import serverlessExpress from '@vendia/serverless-express';
+import { app } from './app';
 
-export const handler = async (event: APIGatewayProxyEvent, context: Context) => {
-	await startApolloServer();
-	const server = awsServerlessExpress.createServer(app);
-	return awsServerlessExpress.proxy(server, event, context);
-};
+// Export the Lambda handler
+export const graphqlHandler = serverlessExpress({ app });
