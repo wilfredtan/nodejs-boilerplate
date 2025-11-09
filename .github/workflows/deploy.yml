@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: "20"
           cache: "yarn"
-          cache-dependency-path: backend-boilerplate/yarn.lock
+          cache-dependency-path: yarn.lock
 
       - name: Install dependencies
         run: npx yarn install --frozen-lockfile
