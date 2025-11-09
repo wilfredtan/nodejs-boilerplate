@@ -54,10 +54,8 @@ export async function startApolloServer() {
     },
   });
 
-  // Only do .start() if we are running locally
-  if (isLocal()) {
-    await apolloServer.start();
-  }
+  // Must `await server.start()` before calling `server.applyMiddleware()`
+  await apolloServer.start();
 
   apolloServer.applyMiddleware({ app, path: '/graphql' });
 }
