@@ -1,30 +1,47 @@
 {
   "name": "nodejs-boilerplate",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
-    "start": "pm2 start ecosystem.config.js && pm2 log",
-    "build": "rm -rf ./build && tsc",
-    "lint": "eslint ./src/**/*.ts -c .eslintrc.json",
+    "start": "npm run build && cd build && env $(cat ../.env | xargs) node app.cjs",
+    "build": "rm -rf ./build/*.cjs* && esbuild src/app.ts --bundle --platform=node --target=node20 --outfile=build/app.cjs --sourcemap",
+    "lint": "eslint ./src/**/*.ts",
     "test": "jest",
-    "up": "docker-compose up"
+    "deploy": "osls deploy -s dev -r ap-southeast-1 --verbose",
+    "remove": "osls remove"
   },
   "dependencies": {
-    "@types/morgan": "^1.9.2",
-    "@types/node": "14.0.0",
+    "@aws-sdk/client-s3": "^3.927.0",
+    "apollo-server-express": "^3.13.0",
+    "aws-serverless-express": "^3.4.0",
     "cors": "^2.8.5",
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "morgan": "^1.10.0",
-    "pm2": "^4.5.6",
-    "typescript": "^4.2.4",
-    "winston": "^3.3.3"
+    "express": "^4.21.2",
+    "graphql": "^16.12.0",
+    "graphql-tag": "^2.12.6",
+    "mongoose": "^8.19.3",
+    "morgan": "^1.10.1",
+    "multer": "^2.0.2",
+    "sharp": "^0.34.5",
+    "typescript": "^5.9.3",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.10",
-    "@types/express": "^4.17.11",
-    "@typescript-eslint/eslint-plugin": "^4.22.0",
-    "@typescript-eslint/parser": "^4.22.0",
-    "eslint": "^7.25.0",
-    "eslint-plugin-node": "^11.1.0"
+    "@eslint/js": "^9.39.1",
+    "@types/aws-lambda": "^8.10.157",
+    "@types/aws-serverless-express": "^3.3.10",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^4.17.17",
+    "@types/morgan": "^1.9.10",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.10.0",
+    "@types/sharp": "^0.32.0",
+    "@types/uuid": "^11.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.46.3",
+    "@typescript-eslint/parser": "^8.46.3",
+    "esbuild": "^0.25.12",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "osls": "^3.58.1",
+    "serverless-esbuild": "^1.55.1"
   }
 }
