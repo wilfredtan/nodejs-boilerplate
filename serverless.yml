@@ -11,7 +11,7 @@ custom:
     exclude: ["@aws-sdk/*"]
     external:
       - sharp
-    target: "node20"
+    target: "node22"
     format: "cjs"
     packagerOptions:
       scripts:
@@ -22,7 +22,7 @@ custom:
 provider:
   name: aws
   architecture: arm64
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   stage: ${opt:stage, 'dev'}
   region: "ap-southeast-1"
   memorySize: 128
