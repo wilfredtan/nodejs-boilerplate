@@ -34,8 +34,6 @@
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.10.0",
-    "@types/sharp": "^0.32.0",
-    "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
     "esbuild": "^0.25.12",
