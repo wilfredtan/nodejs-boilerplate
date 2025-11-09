@@ -9,8 +9,13 @@ custom:
     bundle: true
     minify: false
     exclude: ["@aws-sdk/*"]
+    external:
+      - sharp
     target: "node20"
     format: "cjs"
+    packagerOptions:
+      scripts:
+        - npm i --arch=arm64 --platform=linux sharp
 
 provider:
   name: aws
