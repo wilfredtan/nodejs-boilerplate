@@ -1,7 +1,6 @@
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@as-integrations/express5';
 import serverlessExpress from '@vendia/serverless-express';
-import cors from "cors";
 import express from "express";
 import * as http from "http";
 import morgan from "morgan";
