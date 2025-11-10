@@ -54,7 +54,11 @@ functions:
     handler: src/app.handler
     reservedConcurrency: 1
     url:
-      cors: true
+      cors:
+        allowedOrigins:
+          - http://127.0.0.1:8000
+          - http://localhost:8000
+          - https://wilfredtan.github.io
 
 resources:
   Resources:
