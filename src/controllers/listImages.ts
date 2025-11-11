@@ -44,41 +44,48 @@ export const listImagesResolver = async (_: any, { search, bookmarkFilter, page,
 
   const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
 
-  // Transform _id to id and add previewUrl
-  for (const img of images) {
+  // Transform images to include id and previewUrl
+  const transformedImages = await Promise.all(images.map(async (img) => {
     const imgId = img._id.toHexString();
-    (img as any).id = imgId;
-    delete img._id;
 
-    // Generate preview URL based on environment
-    if (isLocal()) {
-      // Local development: use local download endpoint
-      (img as any).previewUrl = `http://localhost:3001/api/images/local-download/${imgId}`;
-    } else {
-      // Production: generate S3 presigned URL for viewing
-      try {
-        const command = new GetObjectCommand({
-          Bucket: process.env.BUCKET_NAME,
-          Key: img.s3Key
-        });
-        // Generate presigned URL (valid for 1 hour for viewing)
-        const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-        (img as any).previewUrl = presignedUrl;
-      } catch (error) {
-        console.error('Error generating S3 presigned URL:', error);
-        // Fallback to a placeholder or error URL
-        (img as any).previewUrl = '';
+    // Generate preview URL based on environment - use thumbnail if available
+    let previewUrl = '';
+    const thumbnailKey = img.thumbnailS3Key;
+    if (thumbnailKey) {
+      if (isLocal()) {
+        // Local development: use local thumbnail endpoint
+        previewUrl = `http://localhost:3001/api/images/local-thumbnail/${imgId}`;
+      } else {
+        // Production: generate S3 presigned URL for thumbnail
+        try {
+          const command = new GetObjectCommand({
+            Bucket: process.env.BUCKET_NAME,
+            Key: thumbnailKey
+          });
+          // Generate presigned URL (valid for 1 hour for viewing)
+          previewUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+        } catch (error) {
+          console.error('Error generating S3 presigned URL for thumbnail:', error);
+          // previewUrl remains empty
+        }
       }
     }
 
-    // Remove s3Key from response - don't expose internal storage details
-    delete img.s3Key;
-
-    // createdAt remains as Date, serialized by custom scalar
-  }
+    return {
+      id: imgId,
+      name: img.name,
+      size: img.size,
+      width: img.width,
+      height: img.height,
+      fileType: img.fileType,
+      createdAt: img.createdAt,
+      bookmarked: img.bookmarked,
+      previewUrl
+    };
+  }));
 
   return {
-    images,
+    images: transformedImages,
     total,
     page: currentPage,
     limit: itemsPerPage,
