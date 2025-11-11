@@ -24,7 +24,9 @@ export const app = express();
 
 // Middleware
 app.use(morgan("tiny"));
-app.use(cors()); // Enable CORS for all routes
+if (isLocal()) { // Enable CORS for all routes only in local development
+	app.use(cors());
+}
 app.use(express.json());
 app.use(express.urlencoded());
 
