@@ -37,7 +37,7 @@ export const listImagesResolver = async (_: any, { search, bookmarkFilter, page,
     .limit(itemsPerPage)
     .lean();
 
-  const totalPages = Math.ceil(total / itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
 
   // Transform _id to id in place
   images.forEach(img => {

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { Readable } from 'stream';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import s3Client, { bucketName } from '../s3-client';
 import ImageModel from '../models/Image';
 import { promises as fs } from 'fs';
@@ -28,37 +28,62 @@ export const downloadImageHandler = async (req: Request, res: Response) => {
     bookmarked: image.bookmarked,
   };
 
-  // Check if this is a local file (starts with 'uploads/')
+  // Return download URL instead of streaming file
   if (imageData.s3Key.startsWith('uploads/')) {
-    // Local file storage
-    const localPath = path.join(process.cwd(), imageData.s3Key);
-
-    // Check if file exists
-    await fs.access(localPath);
-
-    // Set headers
-    res.setHeader('Content-Type', imageData.fileType || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="${imageData.name}"`);
-
-    // Stream the file
-    const fileStream = createReadStream(localPath);
-    fileStream.pipe(res);
+    // Local file - return local download URL
+    const downloadUrl = `${req.protocol}://${req.get('host')}/api/images/local-download/${id}`;
+    res.json({
+      downloadUrl,
+      fileName: imageData.name,
+      fileSize: imageData.size,
+      fileType: imageData.fileType
+    });
   } else {
-    // S3 storage
+    // S3 object - return presigned URL for direct download
     const getCommand = new GetObjectCommand({
       Bucket: bucketName,
       Key: imageData.s3Key,
     });
 
-    const { Body, ContentType } = await s3Client.send(getCommand);
+    // Generate presigned URL (valid for 1 hour)
+    const downloadUrl = await getSignedUrl(s3Client, getCommand, { expiresIn: 3600 });
 
-    res.setHeader('Content-Type', ContentType || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="${imageData.name}"`);
-
-    if (Body instanceof Readable) {
-      Body.pipe(res);
-    } else {
-      res.send(Body);
-    }
+    res.json({
+      downloadUrl,
+      fileName: imageData.name,
+      fileSize: imageData.size,
+      fileType: imageData.fileType
+    });
   }
+};
+
+// New handler for local file downloads (serves the actual file)
+export const localDownloadHandler = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  const image = await ImageModel.findOne({ _id: id, deletedAt: { $exists: false } });
+  if (!image) {
+    return res.status(404).json({ error: 'Image not found.' });
+  }
+
+  // Only serve local files
+  if (!image.s3Key.startsWith('uploads/')) {
+    return res.status(404).json({ error: 'File not available for local download.' });
+  }
+
+  const localPath = path.join(process.cwd(), image.s3Key);
+
+  // Check if file exists
+  try {
+    await fs.access(localPath);
+  } catch {
+    return res.status(404).json({ error: 'File not found on disk.' });
+  }
+
+  // Set headers and stream file
+  res.setHeader('Content-Type', image.fileType || 'application/octet-stream');
+  res.setHeader('Content-Disposition', `attachment; filename="${image.name}"`);
+
+  const fileStream = createReadStream(localPath);
+  fileStream.pipe(res);
 };

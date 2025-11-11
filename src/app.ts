@@ -4,6 +4,7 @@ import serverlessExpress from '@vendia/serverless-express';
 import express from "express";
 import * as http from "http";
 import morgan from "morgan";
+import cors from "cors";
 import { typeDefs, resolvers } from './gql';
 import connectDB from './database';
 import { routes } from './routes';
@@ -23,6 +24,7 @@ export const app = express();
 
 // Middleware
 app.use(morgan("tiny"));
+app.use(cors()); // Enable CORS for all routes
 app.use(express.json());
 app.use(express.urlencoded());
 
@@ -43,7 +45,7 @@ export const handler = serverlessExpress({ app });
 
 // Only start server for local development
 if (isLocal()) {
-	const port = process.env.PORT || 3000;
+	const port = process.env.PORT || 3001;
 	const httpServer = http.createServer(app);
 
 	httpServer.on("error", (error: NodeJS.ErrnoException) => {
