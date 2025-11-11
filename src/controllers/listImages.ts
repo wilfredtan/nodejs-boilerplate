@@ -44,30 +44,42 @@ export const listImagesResolver = async (_: any, { search, bookmarkFilter, page,
 
   const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
 
-  // Transform images to include id and previewUrl
+  // Transform images to include id, thumbnailUrl, and previewUrl
   const transformedImages = await Promise.all(images.map(async (img) => {
     const imgId = img._id.toHexString();
 
-    // Generate preview URL based on environment - use thumbnail if available
-    let previewUrl = '';
+    // Generate thumbnail URL (for table previews)
+    let thumbnailUrl = '';
     const thumbnailKey = img.thumbnailS3Key;
     if (thumbnailKey) {
       if (isLocal()) {
-        // Local development: use local thumbnail endpoint
-        previewUrl = `http://localhost:3001/api/images/local-thumbnail/${imgId}`;
+        thumbnailUrl = `http://localhost:3001/api/images/local-thumbnail/${imgId}`;
       } else {
-        // Production: generate S3 presigned URL for thumbnail
         try {
           const command = new GetObjectCommand({
             Bucket: process.env.BUCKET_NAME,
             Key: thumbnailKey
           });
-          // Generate presigned URL (valid for 1 hour for viewing)
-          previewUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+          thumbnailUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
         } catch (error) {
           console.error('Error generating S3 presigned URL for thumbnail:', error);
-          // previewUrl remains empty
         }
+      }
+    }
+
+    // Generate preview URL (for panorama viewer - full image)
+    let previewUrl = '';
+    if (isLocal()) {
+      previewUrl = `http://localhost:3001/api/images/local-download/${imgId}`;
+    } else {
+      try {
+        const command = new GetObjectCommand({
+          Bucket: process.env.BUCKET_NAME,
+          Key: img.s3Key
+        });
+        previewUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+      } catch (error) {
+        console.error('Error generating S3 presigned URL for full image:', error);
       }
     }
 
@@ -80,6 +92,7 @@ export const listImagesResolver = async (_: any, { search, bookmarkFilter, page,
       fileType: img.fileType,
       createdAt: img.createdAt,
       bookmarked: img.bookmarked,
+      thumbnailUrl,
       previewUrl
     };
   }));

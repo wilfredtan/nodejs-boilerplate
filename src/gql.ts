@@ -39,6 +39,7 @@ export const typeDefs = gql`
     createdAt: Date!
     bookmarked: Boolean!
     previewUrl: String!
+    thumbnailUrl: String!
   }
 
   type ImageConnection {
